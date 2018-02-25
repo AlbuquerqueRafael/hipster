@@ -1,7 +1,8 @@
 import express from 'express';
 import { ReportService }  from '../service/ReportService';
 import auth from './auth';
-import {ReportValidator} from '../util/ReportValidator'
+import {ReportValidator} from '../util/ReportValidator';
+var sendEmail = require('../service/MailService').sendEmail;
 
 const router = express.Router();
 
@@ -11,11 +12,12 @@ const router = express.Router();
 router.post('/', async (req, res) => {
     const report = req.body;
     const validacao = await ReportValidator.isValid(report);
-  
+      
     if (!validacao.return) {res.status(400).json(validacao.message);}
     else{
       try {
         const data = await ReportService.registerReport(report);
+        sendEmail(JSON.stringify(report)); //send email with report as content        
         res.status(200).json(data);
       } catch(err) {
         res.status(400).json(err.message);
